@@ -102,7 +102,7 @@
 
         // --- 설정 ---
         const firebaseConfig = {
-            apiKey: "AIzaSyDh-srCKjl3pQbcs1ShtCCKmQofw6c5tB4",
+            apiKey: "AIzaSyBazrPsydZcvEK2pXstq7Snmjr8vt_7TLI",
             authDomain: "kids-mind-care.firebaseapp.com",
             projectId: "kids-mind-care",
             storageBucket: "kids-mind-care.firebasestorage.app",
@@ -159,8 +159,16 @@
             botTalk(`안녕! ${childName}${josa}! 오늘 기분은 어때?`);
         };
 
-        // 3. 채팅 로직
+        // 3. 채팅 로직 (수정: 음성 데이터 미리 로드 및 안정화)
         const chatBox = document.getElementById('chat-box');
+        
+        let selectedVoice = null;
+        // 브라우저에 음성 데이터가 준비되면 가장 자연스러운 한국어 목소리를 미리 고정해 둡니다.
+        window.speechSynthesis.onvoiceschanged = () => {
+            const voices = window.speechSynthesis.getVoices();
+            selectedVoice = voices.find(v => v.lang === 'ko-KR' && v.name.includes('Google')) || voices.find(v => v.lang === 'ko-KR');
+        };
+
         function botTalk(text) {
             const div = document.createElement('div');
             div.className = "msg bot";
@@ -168,15 +176,12 @@
             chatBox.appendChild(div);
             chatBox.scrollTop = chatBox.scrollHeight;
 
-            // 수정: 목소리를 귀엽게 만들고 자연스러운 한국어 음성 탐색
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.lang = 'ko-KR';
-            utterance.pitch = 1.4; // 톤을 높여서 귀여운 목소리로 변경 (기본값 1)
+            utterance.pitch = 1.2; // 수정: 1.4에서 1.2로 낮춰 떨림을 줄이고 안정감 부여
             
-            // 브라우저 내장 음성 중 가장 자연스러운 목소리 선택
-            const voices = window.speechSynthesis.getVoices();
-            const koreanVoice = voices.find(v => v.lang === 'ko-KR' && v.name.includes('Google')) || voices.find(v => v.lang === 'ko-KR');
-            if (koreanVoice) utterance.voice = koreanVoice;
+            // 미리 준비해둔 일관된 목소리 적용
+            if (selectedVoice) utterance.voice = selectedVoice;
 
             window.speechSynthesis.speak(utterance);
         }
@@ -255,47 +260,54 @@
 
 // --- 추가 기능: 음성 인식(STT) 및 PDF 다운로드 ---
 
-        // 1. 마이크 누르고 말하기 (Push-to-Talk) 방식 도입 및 특수기호 제거
+        // 1. 마이크 누르고 말하기 (수정: 중간에 끊기지 않고 손을 뗄 때만 전송)
         const micBtn = document.getElementById('btn-mic');
         const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
         recognition.lang = 'ko-KR';
-        recognition.continuous = false; // 버튼 뗄 때 종료되도록 설정
+        recognition.continuous = true; // 수정: 말을 잠시 멈춰도 숨을 쉬며 계속 듣도록 설정
 
         let isRecording = false;
 
-        // 마이크 버튼을 누를 때 (녹음 시작)
         const startRecord = (e) => {
-            e.preventDefault(); // 화면 더블클릭 등 오작동 방지
+            e.preventDefault();
             if (isRecording) return;
             isRecording = true;
+            document.getElementById('input-chat').value = ""; // 입력창 초기화
             micBtn.classList.add('recording');
             recognition.start();
         };
 
-        // 마이크 버튼에서 손을 뗄 때 (녹음 종료)
         const stopRecord = (e) => {
             e.preventDefault();
             if (!isRecording) return;
             isRecording = false;
             micBtn.classList.remove('recording');
-            recognition.stop(); // 누르고 있던 손을 떼면 인식 엔진 정지
+            recognition.stop(); 
+            
+            // 수정: 손을 뗄 때 비로소 전송 버튼을 클릭하도록 타이밍 분리
+            setTimeout(() => {
+                if(document.getElementById('input-chat').value.trim() !== "") {
+                    document.getElementById('btn-send').click();
+                }
+            }, 300); // 텍스트 변환 마무리를 위한 짧은 대기 시간
         };
 
-        // PC 마우스 및 모바일 터치 이벤트 모두 연결
         micBtn.addEventListener('mousedown', startRecord);
         micBtn.addEventListener('mouseup', stopRecord);
-        micBtn.addEventListener('mouseleave', stopRecord); // 마우스가 버튼 밖으로 나가도 종료
+        micBtn.addEventListener('mouseleave', stopRecord);
         micBtn.addEventListener('touchstart', startRecord, {passive: false});
         micBtn.addEventListener('touchend', stopRecord, {passive: false});
 
         recognition.onresult = (event) => {
-            let text = event.results[0][0].transcript;
+            let text = "";
+            // 계속해서 듣고 있는 문장들을 하나로 합침
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                text += event.results[i][0].transcript;
+            }
+            text = text.replace(/[?.!]+$/, ''); // 끝에 붙는 특수기호 제거
             
-            // 수정: 끝에 자동으로 붙는 물음표(?)나 마침표(.)를 깔끔하게 제거
-            text = text.replace(/[?.!]+$/, ''); 
-            
+            // 전송하지 않고 텍스트를 화면에 표시만 해둠
             document.getElementById('input-chat').value = text;
-            document.getElementById('btn-send').click(); // 인식 후 자동 전송
         };
 
         recognition.onerror = () => {
