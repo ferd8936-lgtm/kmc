@@ -102,13 +102,14 @@
 
         // --- 설정 ---
         const firebaseConfig = {
-            apiKey: "AIzaSyBazrPsydZcvEK2pXstq7Snmjr8vt_7TLI",
+            apiKey: "AIzaSyDh-srCKjl3pQbcs1ShtCCKmQofw6c5tB4", // 수정: 파이어베이스 원래 키로 복구
             authDomain: "kids-mind-care.firebaseapp.com",
             projectId: "kids-mind-care",
             storageBucket: "kids-mind-care.firebasestorage.app",
             messagingSenderId: "528391315165",
             appId: "1:528391315165:web:7e2ec5c2e8e5ad06c34534"
         };
+        // 대표님의 제미나이 API 키 유지
         const GEMINI_API_KEY = "AIzaSyBazrPsydZcvEK2pXstq7Snmjr8vt_7TLI";
 
         const app = initializeApp(firebaseConfig);
@@ -243,12 +244,20 @@
                     body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
                 });
                 const data = await response.json();
-                const report = data.candidates[0].content.parts[0].text;
+                let report = data.candidates[0].content.parts[0].text;
+                
+                // 수정: 보고서 내용 아래에 실제 대화 내역을 보기 좋게 추가합니다.
+                report += `\n\n==============================\n`;
+                report += `[ ${childName}의 실제 대화 내역 ]\n`;
+                report += `==============================\n\n`;
+                chatHistory.forEach(chat => {
+                    report += `🤖 봇: ${chat.q}\n👤 ${childName}: ${chat.a}\n\n`;
+                });
                 
                 document.getElementById('report-content').innerText = report;
                 showScreen('screen-result');
                 
-                // 데이터베이스에 세션 저장[cite: 3]
+                // 데이터베이스에 세션 저장
                 await addDoc(collection(db, "sessions"), {
                     name: childName, age: childAge, history: chatHistory, report: report, date: new Date()
                 });
@@ -256,7 +265,6 @@
                 alert("보고서 생성 중 오류가 발생했습니다. 키를 확인해주세요.");
                 console.error(e);
             }
-        };
 
 // --- 추가 기능: 음성 인식(STT) 및 PDF 다운로드 ---
 
@@ -284,12 +292,12 @@
             micBtn.classList.remove('recording');
             recognition.stop(); 
             
-            // 수정: 손을 뗄 때 비로소 전송 버튼을 클릭하도록 타이밍 분리
+            // 수정: 마지막 말이 텍스트로 완전히 변환되도록 대기 시간을 2.5초(2500)로 넉넉히 늘림
             setTimeout(() => {
                 if(document.getElementById('input-chat').value.trim() !== "") {
                     document.getElementById('btn-send').click();
                 }
-            }, 300); // 텍스트 변환 마무리를 위한 짧은 대기 시간
+            }, 2500); // 300 -> 2500 으로 변경
         };
 
         micBtn.addEventListener('mousedown', startRecord);
