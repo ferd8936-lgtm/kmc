@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>아이 마음 케어 상담소</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        @font-face { font-family: 'NexonGothic'; src: url('NexonLv2Gothic_2.ttf') format('truetype'); font-weight: normal; font-style: normal; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'NexonGothic', sans-serif; background-color: #FFF9E6; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        
+        .container { background: white; padding: 30px; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); width: 100%; max-width: 450px; position: relative; overflow: hidden; }
+        h1 { color: #FF8C00; font-size: 24px; margin-bottom: 20px; }
+        p { color: #666; line-height: 1.6; font-size: 15px; }
+
+        /* 화면 전환 효과 */
+        .screen { display: none; flex-direction: column; animation: fadeIn 0.5s; }
+        .screen.active { display: flex; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* 공통 버튼 */
+        button { background: #FFB6C1; color: white; border: none; padding: 15px; border-radius: 30px; font-size: 17px; font-weight: bold; cursor: pointer; transition: 0.3s; font-family: 'NexonGothic'; width: 100%; margin-top: 10px; }
+        button:disabled { background: #EEE; color: #AAA; }
+        button:hover:not(:disabled) { background: #FF9AA2; transform: translateY(-2px); }
+
+        /* 입력창 */
+        input[type="text"], input[type="number"] { width: 100%; padding: 15px; border: 2px solid #F0F0F0; border-radius: 15px; margin-bottom: 15px; font-size: 16px; outline: none; font-family: 'NexonGothic'; }
+        input:focus { border-color: #FFB6C1; }
+
+        /* 챗봇 디자인 */
+        #chat-box { background: #F8F9FB; height: 350px; overflow-y: auto; border-radius: 15px; padding: 15px; display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px; border: 1px solid #EEE; }
+        .msg { max-width: 85%; padding: 12px 16px; border-radius: 18px; font-size: 15px; line-height: 1.5; word-break: keep-all; }
+        .bot { background: white; align-self: flex-start; border-bottom-left-radius: 2px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); color: #444; }
+        .user { background: #FF8C00; color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
+
+        /* 보고서 스타일 */
+        #report-content { text-align: left; background: #fff; padding: 20px; border: 1px solid #eee; border-radius: 10px; font-size: 14px; line-height: 1.8; white-space: pre-wrap; margin-top: 20px; max-height: 500px; overflow-y: auto; }
+        .loading { display: none; color: #FF8C00; font-weight: bold; margin: 20px 0; }
+        
+        /* 마이크 버튼 스타일 */
+        .btn-mic { background: #666; width: 50px !important; padding: 10px !important; }
+        .btn-mic.recording { background: #ff4757; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+    </style>
+</head>
+<body>
+
+    <!-- 1. 동의 화면 -->
+    <div class="container">
+        <div id="screen-consent" class="screen active">
+            <h1>마음 친구 봇 <span style="font-size: 1.5em; vertical-align: middle;">🤖</span></h1>
+            <p>안녕! 나는 너의 이야기를 들어주는 친구야.<br>시작하기 전에 부모님과 함께 확인해줘!</p>
+            <div style="background: #f9f9f9; padding: 15px; border-radius: 10px; font-size: 13px; text-align: left; margin: 15px 0; color: #888;">
+                [안내] 아이의 이름, 나이, 대화 내용은 분석 보고서 생성을 위해 안전하게 저장됩니다.
+            </div>
+            <label style="font-size: 14px; font-weight: bold; margin-bottom: 20px; cursor: pointer;">
+                <input type="checkbox" id="chk-consent"> 내용을 확인했으며 동의합니다.
+            </label>
+            <button id="btn-to-info" disabled>상담 시작하기</button>
+        </div>
+
+        <!-- 2. 정보 입력 -->
+        <div id="screen-info" class="screen">
+            <h1>준비 운동 🎈</h1>
+            <p>상담을 시작하기 전에 정보를 알려줘!</p>
+            <input type="text" id="input-name" placeholder="이름을 알려줘">
+            <input type="number" id="input-age" placeholder="몇 살이야? (숫자만)">
+            <button id="btn-to-chat">입력 완료</button>
+        </div>
+
+        <!-- 3. 대화 화면 -->
+        <div id="screen-chat" class="screen">
+            <h1>마음 친구 봇 <span style="font-size: 1.5em; vertical-align: middle;">🤖</span></h1>
+            <div id="chat-box"></div>
+            <div style="display: flex; gap: 10px;">
+                <input type="text" id="input-chat" placeholder="봇에게 대답해줘!" style="margin:0;">
+                <button id="btn-mic" class="btn-mic" style="margin:0;">🎤</button> <button id="btn-send" style="width: 80px; margin:0; padding:10px;">전송</button>
+            </div>
+        </div>
+
+        <!-- 4. 부모님 호출 -->
+        <div id="screen-parent" class="screen">
+            <h1>너무 잘했어! 🎉</h1>
+            <p id="finish-msg">이제 모든 대화가 끝났단다.<br><strong>부모님을 모셔와 줄래?</strong></p>
+            <div id="loading-spinner" class="loading">AI가 보고서를 작성 중입니다... (약 30초 소요)</div>
+            <button id="btn-gen-report">부모님 확인 (보고서 생성)</button>
+        </div>
+
+        <!-- 5. 결과 화면 -->
+        <div id="screen-result" class="screen">
+            <h1>심리 분석 보고서 📋</h1>
+            <div id="report-content"></div>
+            <button id="btn-download-pdf" style="background: #4CAF50;">PDF 파일로 저장하기</button> <button onclick="window.print()">보고서 인쇄</button>
+            <button onclick="location.reload()" style="background: #eee; color: #666;">처음으로 돌아가기</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        // --- 설정 ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyDh-srCKjl3pQbcs1ShtCCKmQofw6c5tB4",
+            authDomain: "kids-mind-care.firebaseapp.com",
+            projectId: "kids-mind-care",
+            storageBucket: "kids-mind-care.firebasestorage.app",
+            messagingSenderId: "528391315165",
+            appId: "1:528391315165:web:7e2ec5c2e8e5ad06c34534"
+        };
+        const GEMINI_API_KEY = "AIzaSyBazrPsydZcvEK2pXstq7Snmjr8vt_7TLI";
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let childName = "", childAge = "";
+        let chatHistory = [];
+        let questions = [];
+        let expertData = [];
+
+        // 화면 전환 함수
+        function showScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+
+        // 1. 동의 -> 정보입력
+        document.getElementById('chk-consent').onchange = e => document.getElementById('btn-to-info').disabled = !e.target.checked;
+        document.getElementById('btn-to-info').onclick = () => showScreen('screen-info');
+
+        // 2. 정보입력 -> 대화시작
+        document.getElementById('btn-to-info').onclick = async () => {
+            showScreen('screen-info');
+            // 미리 질문 로드 (수정: Set을 이용해 중복된 질문 제거)
+            const qSnap = await getDocs(collection(db, "questions"));
+            const rawQuestions = qSnap.docs.map(d => d.data().text);
+            questions = [...new Set(rawQuestions)].sort(() => Math.random() - 0.5);
+            // 전문가 DB 로드
+            const eSnap = await getDocs(collection(db, "expert_db"));
+            expertData = eSnap.docs.map(d => d.data());
+        };
+
+        // 이름 받침 유무 확인 함수 (추가)
+        function getJosa(name) {
+            const charCode = name.charCodeAt(name.length - 1);
+            const hasJongseong = (charCode - 44032) % 28 > 0; // 받침이 있으면 true
+            return hasJongseong ? "아" : "야";
+        }
+
+        document.getElementById('btn-to-chat').onclick = () => {
+            childName = document.getElementById('input-name').value;
+            childAge = document.getElementById('input-age').value;
+            if(!childName || !childAge) return alert("이름과 나이를 적어줘!");
+            showScreen('screen-chat');
+            
+            // 수정: 받침에 따라 '아' 또는 '야'를 자연스럽게 붙임
+            const josa = getJosa(childName);
+            botTalk(`안녕! ${childName}${josa}! 오늘 기분은 어때?`);
+        };
+
+        // 3. 채팅 로직
+        const chatBox = document.getElementById('chat-box');
+        function botTalk(text) {
+            const div = document.createElement('div');
+            div.className = "msg bot";
+            div.innerText = text;
+            chatBox.appendChild(div);
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            // 수정: 목소리를 귀엽게 만들고 자연스러운 한국어 음성 탐색
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'ko-KR';
+            utterance.pitch = 1.4; // 톤을 높여서 귀여운 목소리로 변경 (기본값 1)
+            
+            // 브라우저 내장 음성 중 가장 자연스러운 목소리 선택
+            const voices = window.speechSynthesis.getVoices();
+            const koreanVoice = voices.find(v => v.lang === 'ko-KR' && v.name.includes('Google')) || voices.find(v => v.lang === 'ko-KR');
+            if (koreanVoice) utterance.voice = koreanVoice;
+
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function userTalk(text) {
+            const div = document.createElement('div');
+            div.className = "msg user";
+            div.innerText = text;
+            chatBox.appendChild(div);
+            chatBox.scrollTop = chatBox.scrollHeight;
+            chatHistory.push({ q: lastBotQ, a: text });
+        }
+
+        let lastBotQ = "첫 인사";
+        document.getElementById('btn-send').onclick = () => {
+            const val = document.getElementById('input-chat').value;
+            if(!val) return;
+            userTalk(val);
+            document.getElementById('input-chat').value = "";
+            
+            setTimeout(() => {
+                if(questions.length > 0 && chatHistory.length < 8) { // 약 8개 질문 진행
+                    lastBotQ = questions.pop();
+                    botTalk(lastBotQ);
+                } else {
+                    showScreen('screen-parent');
+                }
+            }, 1000);
+        };
+
+        // 4. 보고서 생성 (Gemini Pro)
+        document.getElementById('btn-gen-report').onclick = async () => {
+            document.getElementById('btn-gen-report').style.display = "none";
+            document.getElementById('loading-spinner').style.display = "block";
+
+            // 1) 관련 전문가 가이드 추출 (키워드 매칭)[cite: 1, 3]
+            let matchedGuides = expertData.filter(item => 
+                chatHistory.some(chat => chat.a.includes(item.keyword))
+            ).map(item => `[분석기준] 상태: ${item.state}, 가이드: ${item.guide}`).join("\n");
+
+            // 2) 제미나이 프롬프트 구성[cite: 2, 5]
+            const prompt = `너는 아동 심리 분석 전문가야. 아래의 아이 대화 내용을 분석해서 부모님을 위한 상세 보고서를 작성해줘.
+            
+            아이 정보: 이름 ${childName}, 나이 ${childAge}세
+            대화 내용: ${JSON.stringify(chatHistory)}
+            참고용 심리 분석 기준: ${matchedGuides || "일반적인 아동 심리 지식을 바탕으로 분석해줘."}
+            
+            지시사항:
+            1. 보고서는 따뜻하고 전문적인 어조로 작성할 것.
+            2. 아이의 현재 정서 상태를 심도 있게 분석할 것.
+            3. 부모님이 실천할 수 있는 개선 가이드를 구체적으로 제안할 것.
+            4. 인터넷 검색 결과와 대표적인 아동 실태 조사 자료를 보완하여 전문성을 높일 것[cite: 4, 5].
+            5. 분량은 A4 용지 2장 분량(공백 포함 2500자 이상)으로 아주 풍성하게 작성할 것.`;
+
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${GEMINI_API_KEY}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                });
+                const data = await response.json();
+                const report = data.candidates[0].content.parts[0].text;
+                
+                document.getElementById('report-content').innerText = report;
+                showScreen('screen-result');
+                
+                // 데이터베이스에 세션 저장[cite: 3]
+                await addDoc(collection(db, "sessions"), {
+                    name: childName, age: childAge, history: chatHistory, report: report, date: new Date()
+                });
+            } catch (e) {
+                alert("보고서 생성 중 오류가 발생했습니다. 키를 확인해주세요.");
+                console.error(e);
+            }
+        };
+
+// --- 추가 기능: 음성 인식(STT) 및 PDF 다운로드 ---
+
+        // 1. 마이크 누르고 말하기 (Push-to-Talk) 방식 도입 및 특수기호 제거
+        const micBtn = document.getElementById('btn-mic');
+        const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+        recognition.lang = 'ko-KR';
+        recognition.continuous = false; // 버튼 뗄 때 종료되도록 설정
+
+        let isRecording = false;
+
+        // 마이크 버튼을 누를 때 (녹음 시작)
+        const startRecord = (e) => {
+            e.preventDefault(); // 화면 더블클릭 등 오작동 방지
+            if (isRecording) return;
+            isRecording = true;
+            micBtn.classList.add('recording');
+            recognition.start();
+        };
+
+        // 마이크 버튼에서 손을 뗄 때 (녹음 종료)
+        const stopRecord = (e) => {
+            e.preventDefault();
+            if (!isRecording) return;
+            isRecording = false;
+            micBtn.classList.remove('recording');
+            recognition.stop(); // 누르고 있던 손을 떼면 인식 엔진 정지
+        };
+
+        // PC 마우스 및 모바일 터치 이벤트 모두 연결
+        micBtn.addEventListener('mousedown', startRecord);
+        micBtn.addEventListener('mouseup', stopRecord);
+        micBtn.addEventListener('mouseleave', stopRecord); // 마우스가 버튼 밖으로 나가도 종료
+        micBtn.addEventListener('touchstart', startRecord, {passive: false});
+        micBtn.addEventListener('touchend', stopRecord, {passive: false});
+
+        recognition.onresult = (event) => {
+            let text = event.results[0][0].transcript;
+            
+            // 수정: 끝에 자동으로 붙는 물음표(?)나 마침표(.)를 깔끔하게 제거
+            text = text.replace(/[?.!]+$/, ''); 
+            
+            document.getElementById('input-chat').value = text;
+            document.getElementById('btn-send').click(); // 인식 후 자동 전송
+        };
+
+        recognition.onerror = () => {
+            isRecording = false;
+            micBtn.classList.remove('recording');
+        };
+
+        // 2. 보고서 PDF 저장 기능
+        document.getElementById('btn-download-pdf').onclick = () => {
+            const element = document.getElementById('report-content');
+            const opt = {
+                margin: 10,
+                filename: `${childName}_심리분석보고서.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(element).save();
+        };
+    </script>
+</body>
+</html>
