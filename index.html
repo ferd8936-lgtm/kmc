@@ -80,6 +80,7 @@
             <h1>너무 잘했어! 🎉</h1>
             <p id="finish-msg">이제 모든 대화가 끝났단다.<br><strong>부모님을 모셔와 줄래?</strong></p>
             <div id="loading-spinner" class="loading">AI가 보고서를 작성 중입니다... (약 30초 소요)</div>
+            <button id="btn-retry-report" style="display:none; background: #ff4757;">보고서 다시 생성</button>
             <button id="btn-gen-report">부모님 확인 (보고서 생성)</button>
         </div>
 
@@ -201,9 +202,10 @@
             }, 1000);
         };
 
-        // 4. 보고서 생성 (Gemini Pro) - 에러 원인 출력 기능 추가됨
-        document.getElementById('btn-gen-report').onclick = async () => {
+        // 4. 보고서 생성
+        async function generateReport(retryCount = 0) {
             document.getElementById('btn-gen-report').style.display = "none";
+            document.getElementById('btn-retry-report').style.display = "none";
             document.getElementById('loading-spinner').style.display = "block";
 
             let matchedGuides = expertData.filter(item => 
@@ -232,7 +234,6 @@
                 
                 const data = await response.json();
                 
-                // 에러 발생 시 상세 이유를 강제로 던짐
                 if (!response.ok) {
                     throw new Error(`[제미나이 서버 거절] 코드: ${response.status}\n상세이유: ${data.error?.message || '원인 불명'}`);
                 }
@@ -253,7 +254,6 @@
                 document.getElementById('report-content').innerText = report;
                 showScreen('screen-result');
                 
-                // 파이어베이스 저장 시도 (오류가 나더라도 보고서 화면은 보여줌)
                 try {
                     await addDoc(collection(db, "sessions"), {
                         name: childName, age: childAge, history: chatHistory, report: report, date: new Date()
@@ -263,15 +263,24 @@
                 }
 
             } catch (e) {
-                // 구체적인 에러 원인을 팝업으로 출력
+                if (retryCount === 0) {
+                    // 1차 실패 시 2초 후 자동 재시도
+                    setTimeout(() => generateReport(1), 2000);
+                    return;
+                }
+                
+                // 2차 실패 시 에러 출력 및 다시 생성 버튼 노출
                 alert(`🚨 에러 상세 원인 🚨\n\n${e.message}\n\n이 메시지를 알려주세요.`);
                 console.error(e);
                 
-                // 버튼 다시 활성화
-                document.getElementById('btn-gen-report').style.display = "block";
+                document.getElementById('btn-gen-report').style.display = "none";
                 document.getElementById('loading-spinner').style.display = "none";
+                document.getElementById('btn-retry-report').style.display = "block";
             }
-        };
+        }
+
+        document.getElementById('btn-gen-report').onclick = () => generateReport(0);
+        document.getElementById('btn-retry-report').onclick = () => generateReport(0);
 
         // 5. 마이크 및 기타 기능
         const micBtn = document.getElementById('btn-mic');
