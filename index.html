@@ -143,22 +143,16 @@
             document.getElementById(id).classList.add('active');
         }
 
-        // 1. 동의 -> 정보입력
-        document.getElementById('toggle-consent').onclick = () => {
-            const box = document.getElementById('consent-box');
-            box.style.display = box.style.display === 'none' ? 'block' : 'none';
-        };
-
-        document.getElementById('chk-consent').onchange = e => document.getElementById('btn-to-info').disabled = !e.target.checked;
-        
+        // 1. 동의 -> 정보입력 (음성 안내 및 데이터 로드 통합)
         document.getElementById('btn-to-info').onclick = async () => {
             showScreen('screen-info');
-            speakDirectly("상담을 시작하기 전에 너의 이름과 나이를 알려줄래?"); // 음성 추가
+            speakDirectly("상담을 시작하기 전에 너의 이름과 나이를 알려줄래?"); 
             
-            // 질문 및 전문가 데이터 로드 로직 유지
+            // 질문 및 전문가 데이터 로드
             const qSnap = await getDocs(collection(db, "questions"));
             const rawQuestions = qSnap.docs.map(d => d.data().text);
             questions = [...new Set(rawQuestions)].sort(() => Math.random() - 0.5);
+            
             const eSnap = await getDocs(collection(db, "expert_db"));
             expertData = eSnap.docs.map(d => d.data());
         };
@@ -247,17 +241,17 @@
             }, 1000);
         };
 
-        // 4. 보고서 생성 (Gemini Pro)
+        // 4. 보고서 생성 및 DB 저장 (오류 수정 및 정렬)
         document.getElementById('btn-gen-report').onclick = async () => {
             document.getElementById('btn-gen-report').style.display = "none";
             document.getElementById('loading-spinner').style.display = "block";
 
-            // 1) 관련 전문가 가이드 추출 (키워드 매칭)[cite: 1, 3]
+            // 1) 관련 전문가 가이드 추출 (키워드 매칭)
             let matchedGuides = expertData.filter(item => 
                 chatHistory.some(chat => chat.a.includes(item.keyword))
             ).map(item => `[분석기준] 상태: ${item.state}, 가이드: ${item.guide}`).join("\n");
 
-            // 2) 제미나이 프롬프트 구성[cite: 2, 5]
+            // 2) 제미나이 프롬프트 구성
             const prompt = `너는 아동 심리 분석 전문가야. 아래의 아이 대화 내용을 분석해서 부모님을 위한 상세 보고서를 작성해줘.
             
             아이 정보: 이름 ${childName}, 나이 ${childAge}세
@@ -268,7 +262,7 @@
             1. 보고서는 따뜻하고 전문적인 어조로 작성할 것.
             2. 아이의 현재 정서 상태를 심도 있게 분석할 것.
             3. 부모님이 실천할 수 있는 개선 가이드를 구체적으로 제안할 것.
-            4. 인터넷 검색 결과와 대표적인 아동 실태 조사 자료를 보완하여 전문성을 높일 것[cite: 4, 5].
+            4. 인터넷 검색 결과와 대표적인 아동 실태 조사 자료를 보완하여 전문성을 높일 것.
             5. 분량은 A4 용지 2장 분량(공백 포함 2500자 이상)으로 아주 풍성하게 작성할 것.`;
 
             try {
@@ -280,7 +274,7 @@
                 const data = await response.json();
                 let report = data.candidates[0].content.parts[0].text;
                 
-                // 수정: 보고서 내용 아래에 실제 대화 내역을 보기 좋게 추가합니다.
+                // 보고서 내용 아래에 실제 대화 내역 추가
                 report += `\n\n==============================\n`;
                 report += `[ ${childName}의 실제 대화 내역 ]\n`;
                 report += `==============================\n\n`;
@@ -299,6 +293,7 @@
                 alert("보고서 생성 중 오류가 발생했습니다. 키를 확인해주세요.");
                 console.error(e);
             }
+        };
 
 // --- 추가 기능: 음성 인식(STT) 및 PDF 다운로드 ---
 
