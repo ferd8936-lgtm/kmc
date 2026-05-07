@@ -52,14 +52,14 @@
 
     <div class="container">
         <div id="screen-consent" class="screen active">
-            <div style="text-align: left; margin-top: -10px;">
+            <div style="text-align: center; margin-top: -5px;">
                 <div style="font-size: 2.5em; margin-bottom: 0px;">🤖</div>
-                <h1 style="margin-top: 5px; margin-bottom: 10px;">마음 친구 봇</h1>
+                <h1 style="margin-top: 2px; margin-bottom: 5px;">마음 친구 봇</h1>
             </div>
-            <p style="margin-top: 0; margin-bottom: 10px;">안녕! 나는 너의 이야기를 들어주는 친구야.<br>시작하기 전에 부모님과 함께 확인해줘!</p>
-            <div style="width: 100%; text-align: left; margin: 10px 0;">
+            <p style="font-size: 24px; font-weight: bold; margin-top: 5px; margin-bottom: 5px;">안녕! 나는 너의 이야기를 들어주는 친구야.<br>시작하기 전에 부모님과 함께 확인해줘!</p>
+            <div style="width: 100%; text-align: left; margin: 5px 0;">
                 <span onclick="document.getElementById('privacy-info').style.display='block'" style="display: block; cursor: pointer; color: #FF8C00; font-weight: bold; font-size: 14px;">👉 개인정보 수집 안내 보기 (클릭)</span>
-                <div id="privacy-info" style="display: none; background: #f9f9f9; padding: 10px; border-radius: 10px; font-size: 13px; margin-top: 8px; color: #888; text-align: left;">
+                <div id="privacy-info" style="display: none; background: #f9f9f9; padding: 10px; border-radius: 10px; font-size: 13px; margin-top: 4px; color: #888; text-align: left;">
                     [안내] 아이의 이름, 나이, 대화 내용은 분석 보고서 생성을 위해 안전하게 저장됩니다.
                 </div>
             </div>
@@ -78,9 +78,9 @@
         </div>
 
         <div id="screen-chat" class="screen">
-            <div style="text-align: center; margin-top: -10px;">
+            <div style="text-align: center; margin-top: -20px;">
                 <div style="font-size: 2.5em; margin-bottom: 0px;">🤖</div>
-                <h1 style="margin-top: 5px; margin-bottom: 10px;">마음 친구 봇</h1>
+                <h1 style="margin-top: 2px; margin-bottom: 5px;">마음 친구 봇</h1>
             </div>
             <div id="chat-box"></div>
             <div style="display: flex; gap: 10px;">
@@ -166,14 +166,16 @@
         }
 
         document.getElementById('btn-to-chat').onclick = () => {
-            childName = document.getElementById('input-name').value;
-            childAge = document.getElementById('input-age').value;
-            if(!childName || !childAge) return alert("이름과 나이를 적어줘!");
-            showScreen('screen-chat');
-            
-            const josa = getJosa(childName);
-            botTalk(`안녕! ${childName}${josa}! 오늘 기분은 어때?`);
-        };
+            childName = document.getElementById('input-name').value;
+            childAge = document.getElementById('input-age').value;
+            if(!childName || !childAge) return alert("이름과 나이를 적어줘!");
+            showScreen('screen-chat');
+            
+            // 이름이 3글자 이상이면 성(첫 글자)을 빼고 부름
+            const firstName = childName.length >= 3 ? childName.substring(1) : childName;
+            const josa = getJosa(firstName);
+            botTalk(`안녕! ${firstName}${josa}! 오늘 기분은 어때?`);
+        };
 
         // 3. 채팅 로직
         const chatBox = document.getElementById('chat-box');
@@ -192,10 +194,11 @@
             chatBox.scrollTop = chatBox.scrollHeight;
 
             const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = 'ko-KR';
-            utterance.pitch = 1.2; 
-            
-            if (selectedVoice) utterance.voice = selectedVoice;
+            utterance.lang = 'ko-KR';
+            utterance.pitch = 1.0; // 톤을 기본으로 낮춰 안정감 부여
+            utterance.rate = 0.95; // 말하기 속도를 살짝 늦춰 자연스럽게
+            
+            if (selectedVoice) utterance.voice = selectedVoice;
             window.speechSynthesis.speak(utterance);
         }
 
@@ -234,9 +237,11 @@
 
         // 4. 보고서 생성
         async function generateReport(retryCount = 0) {
-            document.getElementById('btn-gen-report').style.display = "none";
-            document.getElementById('btn-retry-report').style.display = "none";
-            document.getElementById('loading-spinner').style.display = "block";
+            document.getElementById('btn-gen-report').style.display = "none";
+            document.getElementById('btn-retry-report').style.display = "none";
+            document.getElementById('loading-spinner').style.display = "flex";
+            document.getElementById('loading-spinner').style.alignItems = "center";
+            document.getElementById('loading-spinner').style.justifyContent = "center";
 
             let matchedGuides = expertData.filter(item => 
                 chatHistory.some(chat => chat.a.includes(item.keyword))
