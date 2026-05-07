@@ -57,11 +57,12 @@
                 <h1 style="margin-top: 2px; margin-bottom: 5px;">마음 친구 봇</h1>
             </div>
             <p style="font-size: 19px; font-weight: bold; margin-top: 5px; margin-bottom: 12px; text-align: left; width: 100%;">안녕!<br>나는 너의 이야기를 들어주는 친구야.<br>시작하기 전에 부모님과 함께 해줘!</p>
-            <div style="width: 100%; text-align: left; margin: 0 0 15px 0; display: flex; align-items: center; gap: 8px;">
-                <input type="checkbox" id="chk-consent" style="width: 18px; height: 18px; cursor: pointer; margin: 0; padding: 0; flex-shrink: 0;">
-                <span onclick="document.getElementById('privacy-info').style.display='block'" style="cursor: pointer; color: #FF8C00; font-weight: bold; font-size: 14px; margin: 0; flex-grow: 1;">👉 내용을 확인했으며 동의합니다 (클릭)</span>
-            </div>
-            <div id="privacy-info" style="display: none; background: #f9f9f9; padding: 10px; border-radius: 10px; font-size: 13px; margin-bottom: 15px; color: #888; text-align: left; box-sizing: border-box; width: 100%;">[안내] 아이의 이름, 나이, 대화 내용은 분석 보고서 생성을 위해 안전하게 저장됩니다.
+            <div style="width: 100%; text-align: left; margin: 15px 0 10px 0; display: flex; align-items: center; gap: 5px; flex-wrap: wrap;">
+                <span onclick="document.getElementById('privacy-info').style.display='block'" style="cursor: pointer; color: #FF8C00; font-weight: bold; font-size: 14px; white-space: nowrap;">👉 개인정보 수집 안내 보기 (클릭)</span>
+                <input type="checkbox" id="chk-consent" style="width: 20px; height: 20px; cursor: pointer; margin: 0; padding: 0; flex-shrink: 0; position: relative; top: -1px;">
+                <span style="font-size: 14px; font-weight: bold; color: #444; white-space: nowrap;">(확인 및 동의)</span>
+            </div>
+            <div id="privacy-info" style="display: none; background: #f9f9f9; padding: 10px; border-radius: 10px; font-size: 13px; margin-bottom: 15px; color: #888; text-align: left; box-sizing: border-box; width: 100%;">[안내] 아이의 이름, 나이, 대화 내용은 분석 보고서 생성을 위해 안전하게 저장되고 3개월 후 삭제됩니다.
             </div>
             <button id="btn-to-info" style="margin-top: 0;" disabled>상담 시작하기</button>
         </div>
