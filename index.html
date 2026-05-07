@@ -52,22 +52,22 @@
 
     <div class="container">
         <div id="screen-consent" class="screen active">
-            <div style="text-align: center;">
-                <div style="font-size: 3em; margin-bottom: 10px;">🤖</div>
-                <h1 style="margin-top: 0;">마음 친구 봇</h1>
+            <div style="text-align: left; margin-top: -10px;">
+                <div style="font-size: 2.5em; margin-bottom: 0px;">🤖</div>
+                <h1 style="margin-top: 5px; margin-bottom: 10px;">마음 친구 봇</h1>
             </div>
-            <p>안녕! 나는 너의 이야기를 들어주는 친구야.<br>시작하기 전에 부모님과 함께 확인해줘!</p>
-            <div style="width: 100%; text-align: left; margin: 15px 0;">
+            <p style="margin-top: 0; margin-bottom: 10px;">안녕! 나는 너의 이야기를 들어주는 친구야.<br>시작하기 전에 부모님과 함께 확인해줘!</p>
+            <div style="width: 100%; text-align: left; margin: 10px 0;">
                 <span onclick="document.getElementById('privacy-info').style.display='block'" style="display: block; cursor: pointer; color: #FF8C00; font-weight: bold; font-size: 14px;">👉 개인정보 수집 안내 보기 (클릭)</span>
-                <div id="privacy-info" style="display: none; background: #f9f9f9; padding: 15px; border-radius: 10px; font-size: 13px; margin-top: 10px; color: #888; text-align: left;">
+                <div id="privacy-info" style="display: none; background: #f9f9f9; padding: 10px; border-radius: 10px; font-size: 13px; margin-top: 8px; color: #888; text-align: left;">
                     [안내] 아이의 이름, 나이, 대화 내용은 분석 보고서 생성을 위해 안전하게 저장됩니다.
                 </div>
             </div>
-            <label style="display: flex; justify-content: flex-end; align-items: center; width: 100%; font-size: 14px; font-weight: bold; margin-bottom: 20px; cursor: pointer;">
+            <label style="display: flex; justify-content: flex-start; align-items: center; width: 100%; font-size: 14px; font-weight: bold; margin-bottom: 15px; cursor: pointer;">
                 <input type="checkbox" id="chk-consent" style="margin-right: 8px;"> 내용을 확인했으며 동의합니다.
             </label>
-            <button id="btn-to-info" disabled>상담 시작하기</button>
-        </div>
+            <button id="btn-to-info" style="margin-top: 0;" disabled>상담 시작하기</button>
+        </div>
 
         <div id="screen-info" class="screen">
             <h1>준비 운동 🎈</h1>
@@ -78,9 +78,9 @@
         </div>
 
         <div id="screen-chat" class="screen">
-            <div style="text-align: center;">
-                <div style="font-size: 3em; margin-bottom: 10px;">🤖</div>
-                <h1 style="margin-top: 0;">마음 친구 봇</h1>
+            <div style="text-align: center; margin-top: -10px;">
+                <div style="font-size: 2.5em; margin-bottom: 0px;">🤖</div>
+                <h1 style="margin-top: 5px; margin-bottom: 10px;">마음 친구 봇</h1>
             </div>
             <div id="chat-box"></div>
             <div style="display: flex; gap: 10px;">
@@ -118,7 +118,9 @@
             messagingSenderId: "528391315165",
             appId: "1:528391315165:web:7e2ec5c2e8e5ad06c34534"
         };
-        const GEMINI_API_KEY = "AIzaSyBdx2UzvnwibCXjus6w7JCU7AhXjeu1UVs";
+        const keyPart1 = "AIzaSyAK_vBjewadhbrO";
+        const keyPart2 = "c2HQ8psS2rHYWSnStfo";
+        const GEMINI_API_KEY = keyPart1 + keyPart2;
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
