@@ -52,10 +52,33 @@
             animation: powerGlow 0.6s ease-in-out infinite alternate !important;
         }
         @keyframes powerGlow {
-            0% { box-shadow: 0 0 5px rgba(255, 140, 0, 0.5); transform: scale(1); background-color: #FFB6C1; }
-            100% { box-shadow: 0 0 25px 8px rgba(255, 140, 0, 0.95); transform: scale(1.08); background-color: #FF8C00; }
-        }
-    </style>
+            0% { box-shadow: 0 0 5px rgba(255, 140, 0, 0.5); transform: scale(1); background-color: #FFB6C1; }
+            100% { box-shadow: 0 0 25px 8px rgba(255, 140, 0, 0.95); transform: scale(1.08); background-color: #FF8C00; }
+        }
+
+        /* [추가] 지시 아이콘/안내판 스타일 */
+        #guide-indicator {
+            display: none; /* 평소엔 숨김 */
+            position: absolute;
+            bottom: 85px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #FFD700;
+            color: #444;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 15px;
+            font-weight: bold;
+            z-index: 100;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            white-space: nowrap;
+        }
+        .bounce { animation: bounce 0.6s infinite alternate ease-in-out; }
+        @keyframes bounce {
+            from { transform: translateX(-50%) translateY(0); }
+            to { transform: translateX(-50%) translateY(-10px); }
+        }
+    </style>
 </head>
 <body>
 
@@ -94,6 +117,8 @@
                 <h1 style="margin-top: 2px; margin-bottom: 5px;">마음 친구 봇</h1>
             </div>
             <div id="chat-box"></div>
+            <div id="guide-indicator" class="bounce">👇 마이크를 꾹 누르고 말한 뒤, 전송을 눌러! 👇</div>
+            
             <div style="display: flex; gap: 10px;">
                 <input type="text" id="input-chat" placeholder="봇에게 대답해줘!" style="margin:0;">
                 <button id="btn-mic" class="btn-mic" style="margin:0;">🎤</button> <button id="btn-send" style="width: 80px; margin:0; padding:10px;">전송</button>
@@ -195,19 +220,10 @@
             // 이름이 3글자 이상이면 성(첫 글자)을 빼고 부름
             const firstName = childName.length >= 3 ? childName.substring(1) : childName;
             const josa = getJosa(firstName);
-            botTalk(`안녕! ${firstName}${josa}!<br>우리가 대화를 어떻게 할건지 알려줄게.<br>내가 너에게 질문을 할거야. 그러면 너는 채팅창 마이크 버튼을 꾹 누른 상태에서 대답을 하고, 끝나면 마이크 버튼을 떼고 전송 버튼을 누르면 되는거야.<br>지금부터 질문을 시작해 볼게!<br>오늘 기분은 어때?`);
+            botTalk(`안녕! ${firstName}${josa}!\n\n우리가 대화를 어떻게 할건지 알려줄게.\n\n내가 너에게 질문을 할거야. 그러면 너는 마이크 버튼을 꾹 누른 상태에서 대답을 하고, 끝나면 마이크 버튼을 떼고 전송 버튼을 누르면 되는거야.\n\n지금부터 질문을 시작해 볼게!\n\n오늘 기분은 어때?`);
 
-            // [추가] 안내 멘트가 나오는 동안 버튼 반짝임 효과 켜기
-            const targetMicBtn = document.getElementById('btn-mic');
-            const targetSendBtn = document.getElementById('btn-send');
-            targetMicBtn.classList.add('btn-glow');
-            targetSendBtn.classList.add('btn-glow');
-
-            // [추가] 약 15초(멘트 종료 예상 시간) 뒤 반짝임 효과 자동 끄기
-            setTimeout(() => {
-                targetMicBtn.classList.remove('btn-glow');
-                targetSendBtn.classList.remove('btn-glow');
-            }, 15000);
+            // [수정] 안내판 나타내기 (정확히 음성이 끝날 때 사라집니다)
+            document.getElementById('guide-indicator').style.display = 'block';
         };
 
         // 3. 채팅 로직
@@ -241,8 +257,14 @@
             }
 
             if (selectedVoice) utterance.voice = selectedVoice;
-            window.speechSynthesis.speak(utterance);
-        }
+            
+            // [추가] 음성이 끝나면 지시 아이콘 숨기기
+            utterance.onend = () => {
+                document.getElementById('guide-indicator').style.display = 'none';
+            };
+            
+            window.speechSynthesis.speak(utterance);
+        }
 
         function userTalk(text) {
             const div = document.createElement('div');
