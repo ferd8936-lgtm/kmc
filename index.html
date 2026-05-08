@@ -46,6 +46,10 @@
         /* 로딩 스피너 애니메이션 추가 */
         .spinner { display: inline-block; width: 18px; height: 18px; border: 3px solid #F0F0F0; border-top: 3px solid #FF8C00; border-radius: 50%; animation: spin 1s linear infinite; vertical-align: middle; margin-right: 8px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* [추가] 마이크/전송 버튼 시각적 강조 애니메이션 */
+        .btn-glow { animation: glowEffect 0.8s infinite alternate !important; outline: 3px solid #FF8C00; outline-offset: 2px; }
+        @keyframes glowEffect { from { box-shadow: 0 0 5px #FF8C00; } to { box-shadow: 0 0 20px #FF8C00; } }
     </style>
 </head>
 <body>
@@ -186,7 +190,19 @@
             // 이름이 3글자 이상이면 성(첫 글자)을 빼고 부름
             const firstName = childName.length >= 3 ? childName.substring(1) : childName;
             const josa = getJosa(firstName);
-            botTalk(`안녕! ${firstName}${josa}! 오늘 기분은 어때?`);
+            botTalk(`안녕! ${firstName}${josa}! 우리가 대화를 어떻게 할건지 알려줄게. 내가 너에게 질문을 할거야. 그러면 너는 채팅창 마이크 버튼을 꾹 누른 상태에서 대답을 하고, 끝나면 마이크 버튼을 떼고 전송 버튼을 누르면 되는거야. 지금부터 질문을 시작해 볼게! 오늘 기분은 어때?`);
+
+            // [추가] 안내 멘트가 나오는 동안 버튼 반짝임 효과 켜기
+            const targetMicBtn = document.getElementById('btn-mic');
+            const targetSendBtn = document.getElementById('btn-send');
+            targetMicBtn.classList.add('btn-glow');
+            targetSendBtn.classList.add('btn-glow');
+
+            // [추가] 약 15초(멘트 종료 예상 시간) 뒤 반짝임 효과 자동 끄기
+            setTimeout(() => {
+                targetMicBtn.classList.remove('btn-glow');
+                targetSendBtn.classList.remove('btn-glow');
+            }, 15000);
         };
 
         // 3. 채팅 로직
