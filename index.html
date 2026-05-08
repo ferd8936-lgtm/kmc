@@ -137,14 +137,19 @@
         </div>
 
         <div id="screen-result" class="screen">
-            <h1>심리 분석 보고서 📋</h1>
-            <div id="report-content"></div>
-            <button onclick="window.print()">보고서 인쇄</button>
-            <button onclick="location.reload()" style="background: #eee; color: #666;">처음으로 돌아가기</button>
-        </div>
-    </div>
+            <h1>심리 분석 보고서 📋</h1>
+            <div id="report-content"></div>
+            <button onclick="window.print()">보고서 인쇄</button>
+            <button onclick="location.reload()" style="background: #eee; color: #666;">처음으로 돌아가기</button>
+        </div>
 
-    <script type="module">
+                <div style="text-align: center; color: #999; font-size: 11px; margin-top: 25px; line-height: 1.5;">
+            퍼드 / 대표 어수지 / 대구시 수성구 청수로 15<br>
+            사업자번호 486-09-01735 / T. 0507-1353-5682 
+        </div>
+    </div>
+
+    <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
