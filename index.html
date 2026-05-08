@@ -10,7 +10,7 @@
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { font-family: 'NexonGothic', sans-serif; background-color: #FFF9E6; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
         
-        .container { background: white; padding: 15px 30px; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); width: 100%; max-width: 450px; position: relative; overflow: hidden; }
+        .container { background: white; padding: 30px; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); width: 100%; max-width: 450px; position: relative; overflow: hidden; }
         h1 { color: #FF8C00; font-size: 24px; margin-bottom: 20px; }
         p { color: #666; line-height: 1.6; font-size: 15px; }
 
@@ -39,7 +39,7 @@
         .loading { display: none; color: #FF8C00; font-weight: bold; margin: 20px 0; }
         
         /* 마이크 버튼 스타일 */
-        .btn-mic { background: #666; width: 50px !important; height: 50px !important; border-radius: 50% !important; padding: 10px !important; }
+        .btn-mic { background: #666; width: 50px !important; padding: 10px !important; }
         .btn-mic.recording { background: #ff4757; animation: pulse 1.5s infinite; }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
         
@@ -57,10 +57,10 @@
         }
 
         /* [추가] 지시 아이콘/안내판 스타일 */
-        #guide-indicator {
-            display: none; /* 평소엔 숨김 */
-            position: absolute;
-            bottom: 110px;
+        #guide-indicator {
+            display: none; /* 평소엔 숨김 */
+            position: absolute;
+            bottom: 85px;
             left: 50%;
             transform: translateX(-50%);
             background: #FFD700;
@@ -85,8 +85,8 @@
     <div class="container">
         <div id="screen-consent" class="screen active">
             <div style="text-align: center; margin-top: -5px;">
-                <div style="margin-bottom: 0px;"><img src="image_dcdf39.jpg" alt="Bot" style="width: 90px; height: auto; margin-bottom: 2.5px;"></div>
-                <h1 style="margin-top: 1px; margin-bottom: 5px;">마음 친구 봇</h1>
+                <div style="margin-bottom: 0px;"><img src="image_dcdf39.jpg" alt="Bot" style="width: 90px; height: auto; margin-bottom: 5px;"></div>
+                <h1 style="margin-top: 2px; margin-bottom: 5px;">마음 친구 봇</h1>
             </div>
             <p style="font-size: 19px; font-weight: bold; margin-top: 5px; margin-bottom: 2px; text-align: left; width: 100%;">안녕!<br>나는 너의 이야기를 들어주는 친구야.<br>시작하기 전에 부모님과 함께 동의 해줘!</p>
             <div style="width: 100%; display: flex; flex-direction: column; align-items: flex-start; margin-top: 2px;">
@@ -113,8 +113,8 @@
 
         <div id="screen-chat" class="screen">
             <div style="text-align: center; margin-top: -20px;">
-                <div style="margin-bottom: 0px;"><img src="image_dcdf39.jpg" alt="Bot" style="width: 90px; height: auto; margin-bottom: 2.5px;"></div>
-                <h1 style="margin-top: 1px; margin-bottom: 5px;">마음 친구 봇</h1>
+                <div style="margin-bottom: 0px;"><img src="image_dcdf39.jpg" alt="Bot" style="width: 90px; height: auto; margin-bottom: 5px;"></div>
+                <h1 style="margin-top: 2px; margin-bottom: 5px;">마음 친구 봇</h1>
             </div>
             <div id="chat-box"></div>
             <div id="guide-indicator" class="bounce"> 👇 마이크를 꾹 누른 상태에서 말한 뒤, 전송 눌러! 👇</div>
@@ -126,10 +126,10 @@
         </div>
 
         <div id="screen-parent" class="screen">
-            <div style="text-align: center; margin-top: -20px;">
-                <div style="margin-bottom: 0px;"><img src="image_dcdf39.jpg" alt="Bot" style="width: 90px; height: auto; margin-bottom: 2.5px;"></div>
-                <h1 style="margin-top: 1px; margin-bottom: 5px;">너무 잘했어!</h1>
-            </div>
+            <div style="text-align: center; margin-top: -20px;">
+                <div style="margin-bottom: 0px;"><img src="image_dcdf39.jpg" alt="Bot" style="width: 90px; height: auto; margin-bottom: 5px;"></div>
+                <h1 style="margin-top: 2px; margin-bottom: 5px;">너무 잘했어!</h1>
+            </div>
             <p id="finish-msg" style="font-size: 20px; font-weight: bold; text-align: center;">이제 모든 대화가 끝났단다.<br>부모님을 모셔와 줄래?</p>
             <div id="loading-spinner" class="loading"><div class="spinner"></div>AI가 보고서를 작성 중입니다... (약 30초 소요)</div>
             <button id="btn-retry-report" style="display:none; background: #ff4757;">보고서 다시 생성</button>
@@ -137,19 +137,14 @@
         </div>
 
         <div id="screen-result" class="screen">
-            <h1>심리 분석 보고서 📋</h1>
-            <div id="report-content"></div>
-            <button onclick="window.print()">보고서 인쇄</button>
-            <button onclick="location.reload()" style="background: #eee; color: #666;">처음으로 돌아가기</button>
-        </div>
+            <h1>심리 분석 보고서 📋</h1>
+            <div id="report-content"></div>
+            <button onclick="window.print()">보고서 인쇄</button>
+            <button onclick="location.reload()" style="background: #eee; color: #666;">처음으로 돌아가기</button>
+        </div>
+    </div>
 
-                <div style="text-align: left; color: #999; font-size: 11px; margin-top: 20px; line-height: 1.5;">
-            퍼드 / 대표 어수지 / 대구시 수성구 청수로 15<br>
-            사업자번호 486-09-01735 / T. 0507-1353-5682 
-        </div>
-    </div>
-
-    <script type="module">
+    <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
