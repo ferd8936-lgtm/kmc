@@ -145,10 +145,20 @@
         // 2. 정보입력 -> 대화시작
         document.getElementById('btn-to-info').onclick = async () => {
             showScreen('screen-info');
-            
+            
+            // [추가] 모바일/태블릿 오디오 잠금 강제 해제 및 큐 초기화
+            window.speechSynthesis.cancel(); 
+            
             // 화면 전환 음성 안내 추가
             const msg1 = new SpeechSynthesisUtterance("상담을 시작하기 전에 정보를 알려줘!");
             msg1.lang = 'ko-KR'; msg1.pitch = 1.2;
+            
+            // [추가] 목소리 데이터 지연 로딩 대비 강제 연결 방어 로직
+            if (!selectedVoice) {
+                const voices = window.speechSynthesis.getVoices();
+                selectedVoice = voices.find(v => v.lang === 'ko-KR' && v.name.includes('Google')) || voices.find(v => v.lang === 'ko-KR');
+            }
+            
             if (selectedVoice) msg1.voice = selectedVoice;
             window.speechSynthesis.speak(msg1);
 
@@ -189,20 +199,29 @@
         };
 
         function botTalk(text) {
-            const div = document.createElement('div');
-            div.className = "msg bot";
-            div.innerText = text;
-            chatBox.appendChild(div);
-            chatBox.scrollTop = chatBox.scrollHeight;
+            const div = document.createElement('div');
+            div.className = "msg bot";
+            div.innerText = text;
+            chatBox.appendChild(div);
+            chatBox.scrollTop = chatBox.scrollHeight;
 
-            const utterance = new SpeechSynthesisUtterance(text);
+            // [추가] 이전 음성이 태블릿 캐시에 남아 꼬이는 현상 방지
+            window.speechSynthesis.cancel();
+
+            const utterance = new SpeechSynthesisUtterance(text);
             utterance.lang = 'ko-KR';
             utterance.pitch = 1.0; // 톤을 기본으로 낮춰 안정감 부여
             utterance.rate = 0.95; // 말하기 속도를 살짝 늦춰 자연스럽게
             
+            // [추가] 목소리 데이터 재확인 로직
+            if (!selectedVoice) {
+                const voices = window.speechSynthesis.getVoices();
+                selectedVoice = voices.find(v => v.lang === 'ko-KR' && v.name.includes('Google')) || voices.find(v => v.lang === 'ko-KR');
+            }
+
             if (selectedVoice) utterance.voice = selectedVoice;
-            window.speechSynthesis.speak(utterance);
-        }
+            window.speechSynthesis.speak(utterance);
+        }
 
         function userTalk(text) {
             const div = document.createElement('div');
@@ -229,8 +248,16 @@
                     showScreen('screen-parent');
                     
                     // 화면 전환 음성 안내 추가
+                    window.speechSynthesis.cancel(); // [추가] 안전 초기화
                     const msg2 = new SpeechSynthesisUtterance("이제 모든 대화가 끝났단다. 부모님을 모셔와 줄래?");
                     msg2.lang = 'ko-KR'; msg2.pitch = 1.2;
+                    
+                    // [추가] 목소리 데이터 재확인 로직
+                    if (!selectedVoice) {
+                        const voices = window.speechSynthesis.getVoices();
+                        selectedVoice = voices.find(v => v.lang === 'ko-KR' && v.name.includes('Google')) || voices.find(v => v.lang === 'ko-KR');
+                    }
+
                     if (selectedVoice) msg2.voice = selectedVoice;
                     window.speechSynthesis.speak(msg2);
                 }
